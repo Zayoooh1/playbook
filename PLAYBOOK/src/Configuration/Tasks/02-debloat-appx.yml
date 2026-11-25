@@ -1,0 +1,425 @@
+---
+title: Total Debloat - AppX, Store, Xbox, Game Bar, Copilot, Recall, OneDrive
+description: Usuwa zbedne pakiety AppX na podstawie jawnej listy, blokuje ich przywracanie (Deprovisioned), usuwa Store, Xbox, Copilot, Recall, Widgets, Teams, Cortana i OneDrive.
+privilege: TrustedInstaller
+actions:
+  # ============================================================================
+  # JAWNA WHITELISTA ZACHOWYWANYCH KOMPONENTOW SYSTEMOWYCH (NIE SA USUWANE):
+  # - Microsoft.VCLibs.*                     (biblioteki C++ dla aplikacji i UI)
+  # - Microsoft.UI.Xaml.*                    (silnik WinUI / Ustawienia)
+  # - Microsoft.WindowsAppRuntime.*          (Windows App SDK)
+  # - Microsoft.NET.Native.*                 (runtime UWP/XAML)
+  # - Microsoft.Services.Store.Engagement    (zaleznosci komponentow UI)
+  # - Microsoft.AIFabric.CBS.*               (KRYTYCZNE na Win 11 26H2 build 26300 - usuniecie psuje OpenWith.exe!)
+  # - ShellExperienceHost / StartMenuExperienceHost / Client.CBS / Windows.Search / ImmersiveControlPanel
+  # - Kodeki systemowe oraz panele sterownikow OEM (NVIDIA, Intel, Realtek, AMD)
+  # - Microsoft Edge WebView2 Runtime        (wymagane przez Roblox i komponenty powloki Windows)
+  # ============================================================================
+
+  # --- Zamkniecie procesow przed debloatem ---
+  - !taskKill: {name: 'GameBar', errorAction: Ignore}
+  - !taskKill: {name: 'GameBarFTServer', errorAction: Ignore}
+  - !taskKill: {name: 'XboxPcApp', errorAction: Ignore}
+  - !taskKill: {name: 'XboxAppServices', errorAction: Ignore}
+  - !taskKill: {name: 'Widgets', errorAction: Ignore}
+  - !taskKill: {name: 'WidgetService', errorAction: Ignore}
+  - !taskKill: {name: 'ms-teams', errorAction: Ignore}
+  - !taskKill: {name: 'Teams', errorAction: Ignore}
+  - !taskKill: {name: 'PhoneExperienceHost', errorAction: Ignore}
+  - !taskKill: {name: 'WinStore.App', errorAction: Ignore}
+
+  # ============================================================================
+  # 1. MICROSOFT STORE
+  # ============================================================================
+  - !appx: {name: 'Microsoft.WindowsStore*', operation: remove, type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.StorePurchaseApp*', operation: remove, type: family, errorAction: Ignore}
+
+  - !registryValue:
+      path: 'HKLM\SOFTWARE\Policies\Microsoft\WindowsStore'
+      value: 'AutoDownload'
+      type: REG_DWORD
+      data: 4
+  - !registryValue:
+      path: 'HKLM\SOFTWARE\Policies\Microsoft\WindowsStore'
+      value: 'RemoveWindowsStore'
+      type: REG_DWORD
+      data: 1
+
+  # ============================================================================
+  # 2. EKOSYSTEM XBOX + GAME BAR + GAMING COPILOT + FIX ms-gamingoverlay
+  # ============================================================================
+  - !appx: {name: 'Microsoft.XboxApp*', operation: remove, type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.XboxGamingOverlay*', operation: remove, type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.XboxGameOverlay*', operation: remove, type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.XboxIdentityProvider*', operation: remove, type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.GamingServices*', operation: remove, type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.XboxSpeechToTextOverlay*', operation: remove, type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.Xbox.TCUI*', operation: remove, type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.GamingApp*', operation: remove, type: family, errorAction: Ignore}
+
+  # Wylaczenie uslug Xbox i GamingServices
+  - !service: {name: 'XblAuthManager', operation: stop, errorAction: Ignore}
+  - !service: {name: 'XblAuthManager', operation: change, startup: 4, errorAction: Ignore}
+  - !service: {name: 'XblGameSave', operation: stop, errorAction: Ignore}
+  - !service: {name: 'XblGameSave', operation: change, startup: 4, errorAction: Ignore}
+  - !service: {name: 'XboxNetApiSvc', operation: stop, errorAction: Ignore}
+  - !service: {name: 'XboxNetApiSvc', operation: change, startup: 4, errorAction: Ignore}
+  - !service: {name: 'XboxGipSvc', operation: stop, errorAction: Ignore}
+  - !service: {name: 'XboxGipSvc', operation: change, startup: 4, errorAction: Ignore}
+  - !service: {name: 'GamingServices', operation: stop, errorAction: Ignore}
+  - !service: {name: 'GamingServices', operation: change, startup: 4, errorAction: Ignore}
+  - !service: {name: 'GamingServicesNet', operation: stop, errorAction: Ignore}
+  - !service: {name: 'GamingServicesNet', operation: change, startup: 4, errorAction: Ignore}
+
+  # Wylaczenie Game DVR, Game Bar i Gaming Copilot
+  - !registryValue:
+      path: 'HKCU\System\GameConfigStore'
+      value: 'GameDVR_Enabled'
+      type: REG_DWORD
+      data: 0
+  - !registryValue:
+      path: 'HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\GameDVR'
+      value: 'AppCaptureEnabled'
+      type: REG_DWORD
+      data: 0
+  - !registryValue:
+      path: 'HKCU\SOFTWARE\Microsoft\GameBar'
+      value: 'ShowStartupPanel'
+      type: REG_DWORD
+      data: 0
+  - !registryValue:
+      path: 'HKCU\SOFTWARE\Microsoft\GameBar'
+      value: 'UseNexusForGameBarEnabled'
+      type: REG_DWORD
+      data: 0
+  - !registryValue:
+      path: 'HKCU\SOFTWARE\Microsoft\GameBar'
+      value: 'GamePanelStartupTipIndex'
+      type: REG_DWORD
+      data: 3
+  - !registryValue:
+      path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\GameDVR'
+      value: 'AllowGameDVR'
+      type: REG_DWORD
+      data: 0
+  - !registryValue:
+      path: 'HKLM\SOFTWARE\Microsoft\PolicyManager\default\ApplicationManagement\AllowGameDVR'
+      value: 'value'
+      type: REG_DWORD
+      data: 0
+      errorAction: Ignore
+  - !registryValue:
+      path: 'HKLM\SOFTWARE\Microsoft\WindowsRuntime\ActivatableClassId\Windows.Gaming.GameBar.PresenceServer.Internal.PresenceWriter'
+      value: 'ActivationType'
+      type: REG_DWORD
+      data: 0
+      errorAction: Ignore
+  - !registryValue:
+      path: 'HKLM\SOFTWARE\Microsoft\WindowsRuntime\ActivatableClassId\Microsoft.Xbox.GamingAI.Companion.Host.GamingCompanionHostOptions'
+      value: 'ActivationType'
+      type: REG_DWORD
+      data: 0
+      errorAction: Ignore
+
+  # Obowiazkowy fix na popup "You'll need a new app to open this ms-gamingoverlay link"
+  - !registryValue:
+      path: 'HKCR\ms-gamingoverlay'
+      value: ''
+      type: REG_SZ
+      data: 'URL:ms-gamingoverlay'
+  - !registryValue:
+      path: 'HKCR\ms-gamingoverlay'
+      value: 'URL Protocol'
+      type: REG_SZ
+      data: ''
+  - !registryValue:
+      path: 'HKCR\ms-gamingoverlay\shell\open\command'
+      value: ''
+      type: REG_SZ
+      data: '%SystemRoot%\System32\systray.exe'
+
+  - !registryValue:
+      path: 'HKCR\ms-gamebar'
+      value: ''
+      type: REG_SZ
+      data: 'URL:ms-gamebar'
+  - !registryValue:
+      path: 'HKCR\ms-gamebar'
+      value: 'URL Protocol'
+      type: REG_SZ
+      data: ''
+  - !registryValue:
+      path: 'HKCR\ms-gamebar\shell\open\command'
+      value: ''
+      type: REG_SZ
+      data: '%SystemRoot%\System32\systray.exe'
+
+  # ============================================================================
+  # 3. COPILOT I RECALL (WINDOWS 11 - Z ZACHOWANIEM Microsoft.AIFabric.CBS.*)
+  # ============================================================================
+  - !appx: {name: 'Microsoft.Copilot*', operation: remove, type: family, builds: ['>=22000'], errorAction: Ignore}
+  - !appx: {name: 'Microsoft.Windows.Ai.Copilot.Provider*', operation: remove, type: family, builds: ['>=22000'], errorAction: Ignore}
+
+  - !registryValue:
+      path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsAI'
+      value: 'RemoveMicrosoftCopilotApp'
+      type: REG_DWORD
+      data: 1
+      builds: ['>=22000']
+  - !registryValue:
+      path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsAI'
+      value: 'DisableAIDataAnalysis'
+      type: REG_DWORD
+      data: 1
+      builds: ['>=22000']
+  - !registryValue:
+      path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsAI'
+      value: 'AllowRecallEnablement'
+      type: REG_DWORD
+      data: 0
+      builds: ['>=22000']
+  - !registryValue:
+      path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsAI'
+      value: 'TurnOffWindowsCopilot'
+      type: REG_DWORD
+      data: 1
+      builds: ['>=22000']
+  - !registryValue:
+      path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsCopilot'
+      value: 'TurnOffWindowsCopilot'
+      type: REG_DWORD
+      data: 1
+      builds: ['>=22000']
+  - !registryValue:
+      path: 'HKCU\Software\Policies\Microsoft\Windows\WindowsCopilot'
+      value: 'TurnOffWindowsCopilot'
+      type: REG_DWORD
+      data: 1
+      builds: ['>=22000']
+
+  - !cmd:
+      command: 'DISM /Online /Disable-Feature /FeatureName:Recall /NoRestart'
+      wait: true
+      builds: ['>=22000']
+      errorAction: Ignore
+
+  # ============================================================================
+  # 4. WIDGETS, TEAMS, CORTANA, SPOTIFY STORE I ZBEDNE PAKIETY APPX
+  # ============================================================================
+  - !appx: {name: 'MicrosoftWindows.Client.WebExperience*', operation: remove, type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.WidgetsPlatformRuntime*', operation: remove, type: family, errorAction: Ignore}
+  - !registryValue:
+      path: 'HKLM\SOFTWARE\Policies\Microsoft\Dsh'
+      value: 'AllowNewsAndInterests'
+      type: REG_DWORD
+      data: 0
+
+  - !appx: {name: 'MicrosoftTeams*', operation: remove, type: family, errorAction: Ignore}
+  - !appx: {name: 'MSTeams*', operation: remove, type: family, errorAction: Ignore}
+  - !registryValue:
+      path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Communications'
+      value: 'ConfigureChatAutoInstall'
+      type: REG_DWORD
+      data: 0
+
+  - !appx: {name: 'Microsoft.549981C3F5F10*', operation: remove, type: family, errorAction: Ignore}
+
+  # Usuniecie wersji Spotify ze Store (inaczej instalator desktop Spotify wisi)
+  - !appx: {name: 'SpotifyAB.SpotifyMusic*', operation: remove, type: family, errorAction: Ignore}
+
+  # Jawna lista usuwanych aplikacji bloatware (BEZ slepego Remove-AppxPackage)
+  - !appx: {name: 'Clipchamp.Clipchamp*', operation: remove, type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.BingNews*', operation: remove, type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.BingWeather*', operation: remove, type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.BingFinance*', operation: remove, type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.BingSports*', operation: remove, type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.BingSearch*', operation: remove, type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.MicrosoftSolitaireCollection*', operation: remove, type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.YourPhone*', operation: remove, type: family, errorAction: Ignore}
+  - !appx: {name: 'MicrosoftWindows.CrossDevice*', operation: remove, type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.MicrosoftOfficeHub*', operation: remove, type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.Todos*', operation: remove, type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.PowerAutomateDesktop*', operation: remove, type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.WindowsFeedbackHub*', operation: remove, type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.GetHelp*', operation: remove, type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.Getstarted*', operation: remove, type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.ZuneMusic*', operation: remove, type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.ZuneVideo*', operation: remove, type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.People*', operation: remove, type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.WindowsMaps*', operation: remove, type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.MixedReality.Portal*', operation: remove, type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.WindowsSoundRecorder*', operation: remove, type: family, errorAction: Ignore}
+  - !appx: {name: 'MicrosoftCorporationII.QuickAssist*', operation: remove, type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.OutlookForWindows*', operation: remove, type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.Windows.DevHome*', operation: remove, type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.WindowsCommunicationsApps*', operation: remove, type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.3DBuilder*', operation: remove, type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.Microsoft3DViewer*', operation: remove, type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.MSPaint*', operation: remove, type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.Print3D*', operation: remove, type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.Messaging*', operation: remove, type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.OneConnect*', operation: remove, type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.SkypeApp*', operation: remove, type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.Office.Sway*', operation: remove, type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.Wallet*', operation: remove, type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.Whiteboard*', operation: remove, type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.MicrosoftJournal*', operation: remove, type: family, errorAction: Ignore}
+  - !appx: {name: 'MicrosoftCorporationII.MicrosoftFamily*', operation: remove, type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.MicrosoftStickyNotes*', operation: remove, type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.WindowsAlarms*', operation: remove, type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.WindowsCamera*', operation: remove, type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.Office.OneNote*', operation: remove, type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.Advertising.Xaml*', operation: remove, type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.StartExperiencesApp*', operation: remove, type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.Windows.PeopleExperienceHost*', operation: remove, type: family, errorAction: Ignore}
+  - !appx: {name: 'Microsoft.ScreenSketch*', operation: remove, type: family, errorAction: Ignore}
+
+  # ============================================================================
+  # 5. DEPROVISIONED REGISTRY KEYS (BLOKADA PRZYWRACANIA USUNIETYCH APPX)
+  # ============================================================================
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.WindowsStore_8wekyb3d8bbwe', operation: add}
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.StorePurchaseApp_8wekyb3d8bbwe', operation: add}
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.XboxApp_8wekyb3d8bbwe', operation: add}
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.XboxGamingOverlay_8wekyb3d8bbwe', operation: add}
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.XboxGameOverlay_8wekyb3d8bbwe', operation: add}
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.XboxIdentityProvider_8wekyb3d8bbwe', operation: add}
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.GamingServices_8wekyb3d8bbwe', operation: add}
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.XboxSpeechToTextOverlay_8wekyb3d8bbwe', operation: add}
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.Xbox.TCUI_8wekyb3d8bbwe', operation: add}
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.GamingApp_8wekyb3d8bbwe', operation: add}
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.Copilot_8wekyb3d8bbwe', operation: add}
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.Windows.Ai.Copilot.Provider_8wekyb3d8bbwe', operation: add}
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\MicrosoftWindows.Client.WebExperience_cw5n1h2txyewy', operation: add}
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.WidgetsPlatformRuntime_8wekyb3d8bbwe', operation: add}
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\MicrosoftTeams_8wekyb3d8bbwe', operation: add}
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\MSTeams_8wekyb3d8bbwe', operation: add}
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.549981C3F5F10_8wekyb3d8bbwe', operation: add}
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\SpotifyAB.SpotifyMusic_zpdnekdrzrea0', operation: add}
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Clipchamp.Clipchamp_yxz26nhyzhsrt', operation: add}
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.BingNews_8wekyb3d8bbwe', operation: add}
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.BingWeather_8wekyb3d8bbwe', operation: add}
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.BingFinance_8wekyb3d8bbwe', operation: add}
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.BingSports_8wekyb3d8bbwe', operation: add}
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.BingSearch_8wekyb3d8bbwe', operation: add}
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.MicrosoftSolitaireCollection_8wekyb3d8bbwe', operation: add}
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.YourPhone_8wekyb3d8bbwe', operation: add}
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\MicrosoftWindows.CrossDevice_cw5n1h2txyewy', operation: add}
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.MicrosoftOfficeHub_8wekyb3d8bbwe', operation: add}
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.Todos_8wekyb3d8bbwe', operation: add}
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.PowerAutomateDesktop_8wekyb3d8bbwe', operation: add}
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.WindowsFeedbackHub_8wekyb3d8bbwe', operation: add}
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.GetHelp_8wekyb3d8bbwe', operation: add}
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.Getstarted_8wekyb3d8bbwe', operation: add}
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.ZuneMusic_8wekyb3d8bbwe', operation: add}
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.ZuneVideo_8wekyb3d8bbwe', operation: add}
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.People_8wekyb3d8bbwe', operation: add}
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.WindowsMaps_8wekyb3d8bbwe', operation: add}
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.MixedReality.Portal_8wekyb3d8bbwe', operation: add}
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.WindowsSoundRecorder_8wekyb3d8bbwe', operation: add}
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\MicrosoftCorporationII.QuickAssist_8wekyb3d8bbwe', operation: add}
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.OutlookForWindows_8wekyb3d8bbwe', operation: add}
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.Windows.DevHome_8wekyb3d8bbwe', operation: add}
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.WindowsCommunicationsApps_8wekyb3d8bbwe', operation: add}
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.3DBuilder_8wekyb3d8bbwe', operation: add}
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.Microsoft3DViewer_8wekyb3d8bbwe', operation: add}
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.MSPaint_8wekyb3d8bbwe', operation: add}
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.Print3D_8wekyb3d8bbwe', operation: add}
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.Messaging_8wekyb3d8bbwe', operation: add}
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.OneConnect_8wekyb3d8bbwe', operation: add}
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.SkypeApp_kzf8qxf38zg5c', operation: add}
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.Office.Sway_8wekyb3d8bbwe', operation: add}
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.Wallet_8wekyb3d8bbwe', operation: add}
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.Whiteboard_8wekyb3d8bbwe', operation: add}
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.MicrosoftJournal_8wekyb3d8bbwe', operation: add}
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\MicrosoftCorporationII.MicrosoftFamily_8wekyb3d8bbwe', operation: add}
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.MicrosoftStickyNotes_8wekyb3d8bbwe', operation: add}
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.WindowsAlarms_8wekyb3d8bbwe', operation: add}
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.Office.OneNote_8wekyb3d8bbwe', operation: add}
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.StartExperiencesApp_8wekyb3d8bbwe', operation: add}
+
+  # ============================================================================
+  # 6. ONEDRIVE (ODINSTALOWANIE, POLITYKI I UKRYCIE Z EKSPLORATORA)
+  # ============================================================================
+  - !powerShell:
+      command: '.\remove-onedrive.ps1'
+      exeDir: true
+      runas: trustedInstaller
+      wait: true
+      timeout: 300000
+      errorAction: Log
+
+  - !registryValue:
+      path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\OneDrive'
+      value: 'DisableFileSyncNGSC'
+      type: REG_DWORD
+      data: 1
+  - !registryValue:
+      path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\OneDrive'
+      value: 'DisableFileSync'
+      type: REG_DWORD
+      data: 1
+  - !registryValue:
+      path: 'HKCR\CLSID\{018D5C66-4533-4307-9B53-224DE2ED1FE6}'
+      value: 'System.IsPinnedToNameSpaceTree'
+      type: REG_DWORD
+      data: 0
+      errorAction: Ignore
+  - !registryValue:
+      path: 'HKCR\Wow6432Node\CLSID\{018D5C66-4533-4307-9B53-224DE2ED1FE6}'
+      value: 'System.IsPinnedToNameSpaceTree'
+      type: REG_DWORD
+      data: 0
+      errorAction: Ignore
+  - !registryValue:
+      path: 'HKCU\Software\Classes\CLSID\{018D5C66-4533-4307-9B53-224DE2ED1FE6}'
+      value: 'System.IsPinnedToNameSpaceTree'
+      type: REG_DWORD
+      data: 0
+      errorAction: Ignore
+  - !registryValue:
+      path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\Run'
+      value: 'OneDriveSetup'
+      operation: delete
+      errorAction: Ignore
+  - !registryValue:
+      path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\Run'
+      value: 'OneDrive'
+      operation: delete
+      errorAction: Ignore
+
+  # Blokada automatycznego instalowania sponsorowanych aplikacji (ContentDeliveryManager)
+  - !registryValue:
+      path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\CloudContent'
+      value: 'DisableWindowsConsumerFeatures'
+      type: REG_DWORD
+      data: 1
+  - !registryValue:
+      path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager'
+      value: 'SilentInstalledAppsEnabled'
+      type: REG_DWORD
+      data: 0
+  - !registryValue:
+      path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager'
+      value: 'ContentDeliveryAllowed'
+      type: REG_DWORD
+      data: 0
+  - !registryValue:
+      path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager'
+      value: 'OemPreInstalledAppsEnabled'
+      type: REG_DWORD
+      data: 0
+  - !registryValue:
+      path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager'
+      value: 'PreInstalledAppsEnabled'
+      type: REG_DWORD
+      data: 0
+  - !registryValue:
+      path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager'
+      value: 'PreInstalledAppsEverEnabled'
+      type: REG_DWORD
+      data: 0
+  - !registryValue:
+      path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager'
+      value: 'FeatureManagementEnabled'
+      type: REG_DWORD
+      data: 0

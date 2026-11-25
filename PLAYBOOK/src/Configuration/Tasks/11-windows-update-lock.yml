@@ -1,0 +1,129 @@
+---
+title: Hard Windows Update Lock (ALWAYS LAST STEP)
+description: Trwale wylacza uslugi Windows Update (bez dotykania BITS), harmonogramy naprawcze, Delivery Optimization oraz polityki aktualizacji i sterownikow.
+privilege: TrustedInstaller
+actions:
+  # ============================================================================
+  # 1. POLITYKI REJESTRU WINDOWS UPDATE I DELIVERY OPTIMIZATION
+  # ============================================================================
+  - !registryValue:
+      path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate'
+      value: 'DisableWindowsUpdateAccess'
+      type: REG_DWORD
+      data: 1
+  - !registryValue:
+      path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate'
+      value: 'DoNotConnectToWindowsUpdateInternetLocations'
+      type: REG_DWORD
+      data: 1
+  - !registryValue:
+      path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate'
+      value: 'ExcludeWUDriversInQualityUpdate'
+      type: REG_DWORD
+      data: 1
+  - !registryValue:
+      path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate'
+      value: 'SetDisableUXWUAccess'
+      type: REG_DWORD
+      data: 1
+  - !registryValue:
+      path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU'
+      value: 'NoAutoUpdate'
+      type: REG_DWORD
+      data: 1
+  - !registryValue:
+      path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU'
+      value: 'AUOptions'
+      type: REG_DWORD
+      data: 1
+  - !registryValue:
+      path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU'
+      value: 'NoAutoRebootWithLoggedOnUsers'
+      type: REG_DWORD
+      data: 1
+  - !registryValue:
+      path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\DriverSearching'
+      value: 'SearchOrderConfig'
+      type: REG_DWORD
+      data: 0
+  - !registryValue:
+      path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\DeliveryOptimization'
+      value: 'DODownloadMode'
+      type: REG_DWORD
+      data: 0
+
+  # ============================================================================
+  # 2. ZATRZYMANIE I WYLACZENIE USLUG WU (NIE WYLACZAMY USLUGI BITS!)
+  # ============================================================================
+  - !service: {name: 'wuauserv', operation: stop, errorAction: Ignore}
+  - !service: {name: 'wuauserv', operation: change, startup: 4, errorAction: Ignore}
+  - !service: {name: 'UsoSvc', operation: stop, errorAction: Ignore}
+  - !service: {name: 'UsoSvc', operation: change, startup: 4, errorAction: Ignore}
+  - !service: {name: 'WaaSMedicSvc', operation: stop, errorAction: Ignore}
+  - !service: {name: 'WaaSMedicSvc', operation: change, startup: 4, errorAction: Ignore}
+  - !service: {name: 'DoSvc', operation: stop, errorAction: Ignore}
+  - !service: {name: 'DoSvc', operation: change, startup: 4, errorAction: Ignore}
+
+  # Bezposrednie wymuszenie Start = 4 w rejestrze jako TrustedInstaller
+  - !registryValue:
+      path: 'HKLM\SYSTEM\CurrentControlSet\Services\wuauserv'
+      value: 'Start'
+      type: REG_DWORD
+      data: 4
+      errorAction: Ignore
+  - !registryValue:
+      path: 'HKLM\SYSTEM\CurrentControlSet\Services\UsoSvc'
+      value: 'Start'
+      type: REG_DWORD
+      data: 4
+      errorAction: Ignore
+  - !registryValue:
+      path: 'HKLM\SYSTEM\CurrentControlSet\Services\WaaSMedicSvc'
+      value: 'Start'
+      type: REG_DWORD
+      data: 4
+      errorAction: Ignore
+  - !registryValue:
+      path: 'HKLM\SYSTEM\CurrentControlSet\Services\DoSvc'
+      value: 'Start'
+      type: REG_DWORD
+      data: 4
+      errorAction: Ignore
+
+  # ============================================================================
+  # 3. WYLACZENIE I USUNIECIE ZAPLANOWANYCH ZADAN WINDOWS UPDATE I NAPRAWCZYCH
+  # ============================================================================
+  - !scheduledTask: {path: '\Microsoft\Windows\WindowsUpdate\Scheduled Start', operation: disable, errorAction: Ignore}
+  - !scheduledTask: {path: '\Microsoft\Windows\WindowsUpdate\Scheduled Start', operation: delete, errorAction: Ignore}
+  - !scheduledTask: {path: '\Microsoft\Windows\WindowsUpdate\sih', operation: disable, errorAction: Ignore}
+  - !scheduledTask: {path: '\Microsoft\Windows\WindowsUpdate\sih', operation: delete, errorAction: Ignore}
+  - !scheduledTask: {path: '\Microsoft\Windows\WindowsUpdate\sihboot', operation: disable, errorAction: Ignore}
+  - !scheduledTask: {path: '\Microsoft\Windows\WindowsUpdate\sihboot', operation: delete, errorAction: Ignore}
+  - !scheduledTask: {path: '\Microsoft\Windows\WindowsUpdate', operation: deleteFolder, errorAction: Ignore}
+
+  - !scheduledTask: {path: '\Microsoft\Windows\UpdateOrchestrator\Schedule Scan', operation: disable, errorAction: Ignore}
+  - !scheduledTask: {path: '\Microsoft\Windows\UpdateOrchestrator\Schedule Scan', operation: delete, errorAction: Ignore}
+  - !scheduledTask: {path: '\Microsoft\Windows\UpdateOrchestrator\Schedule Scan Static Task', operation: disable, errorAction: Ignore}
+  - !scheduledTask: {path: '\Microsoft\Windows\UpdateOrchestrator\Schedule Scan Static Task', operation: delete, errorAction: Ignore}
+  - !scheduledTask: {path: '\Microsoft\Windows\UpdateOrchestrator\USO_UxBroker', operation: disable, errorAction: Ignore}
+  - !scheduledTask: {path: '\Microsoft\Windows\UpdateOrchestrator\USO_UxBroker', operation: delete, errorAction: Ignore}
+  - !scheduledTask: {path: '\Microsoft\Windows\UpdateOrchestrator\Reboot', operation: disable, errorAction: Ignore}
+  - !scheduledTask: {path: '\Microsoft\Windows\UpdateOrchestrator\Reboot', operation: delete, errorAction: Ignore}
+  - !scheduledTask: {path: '\Microsoft\Windows\UpdateOrchestrator\Report policies', operation: disable, errorAction: Ignore}
+  - !scheduledTask: {path: '\Microsoft\Windows\UpdateOrchestrator\Report policies', operation: delete, errorAction: Ignore}
+  - !scheduledTask: {path: '\Microsoft\Windows\UpdateOrchestrator', operation: deleteFolder, errorAction: Ignore}
+
+  - !scheduledTask: {path: '\Microsoft\Windows\WaaSMedic\PerformRemediation', operation: disable, errorAction: Ignore}
+  - !scheduledTask: {path: '\Microsoft\Windows\WaaSMedic\PerformRemediation', operation: delete, errorAction: Ignore}
+  - !scheduledTask: {path: '\Microsoft\Windows\WaaSMedic', operation: deleteFolder, errorAction: Ignore}
+
+  # ============================================================================
+  # 4. ZABEZPIECZENIE PRZED SAMONAPRAWA (FailureActions + WaaSMedicSvc Start = 4)
+  # ============================================================================
+  - !powerShell:
+      command: '.\disable-windows-update.ps1'
+      exeDir: true
+      runas: trustedInstaller
+      wait: true
+      timeout: 180000
+      errorAction: Log

@@ -1,0 +1,12 @@
+---
+title: Locale, Keyboard, Region and TimeZone (pl-PL)
+description: Ustawia jezyk pl-PL, wylaczny uklad klawiatury Polski (programisty), GeoID 191 oraz strefe czasowa Warszawa przed blokada Windows Update.
+privilege: TrustedInstaller
+actions:
+  - !powerShell:
+      command: '.\set-locale-pl.ps1'
+      exeDir: true
+      runas: currentUserElevated
+      wait: true
+      timeout: 600000
+      errorAction: Log

@@ -1,0 +1,70 @@
+---
+title: Optional User Applications Installation (No Store, No Winget)
+description: Instaluje wybrane w FeaturePages aplikacje bezposrednio ze zrodel producentow w odpowiednim kontekscie uprawnien (currentUserElevated dla MSI, currentUser dla per-user).
+privilege: TrustedInstaller
+actions:
+  # 1. Google Chrome (x64 Enterprise MSI) - per-machine -> currentUserElevated
+  - !status: {status: 'Instalacja: Google Chrome (x64)', option: 'app-chrome'}
+  - !powerShell:
+      command: '.\install-chrome.ps1'
+      exeDir: true
+      runas: currentUserElevated
+      wait: true
+      timeout: 600000
+      option: 'app-chrome'
+      errorAction: Log
+
+  # 2. Discord (x64) - per-user (%LocalAppData%) -> BEZ elevacji (currentUser)
+  - !status: {status: 'Instalacja: Discord (x64)', option: 'app-discord'}
+  - !powerShell:
+      command: '.\install-discord.ps1'
+      exeDir: true
+      runas: currentUser
+      wait: true
+      timeout: 300000
+      option: 'app-discord'
+      errorAction: Log
+
+  # 3. Spotify Desktop - per-user (%APPDATA%) -> BEZ elevacji (currentUser)
+  - !status: {status: 'Instalacja: Spotify', option: 'app-spotify'}
+  - !powerShell:
+      command: '.\install-spotify.ps1'
+      exeDir: true
+      runas: currentUser
+      wait: true
+      timeout: 300000
+      option: 'app-spotify'
+      errorAction: Log
+
+  # 4. Epic Games Launcher (MSI) - per-machine -> currentUserElevated
+  - !status: {status: 'Instalacja: Epic Games Launcher', option: 'app-epic'}
+  - !powerShell:
+      command: '.\install-epic.ps1'
+      exeDir: true
+      runas: currentUserElevated
+      wait: true
+      timeout: 600000
+      option: 'app-epic'
+      errorAction: Log
+
+  # 5. Roblox Player - per-user (%LocalAppData%) -> BEZ elevacji (currentUser)
+  - !status: {status: 'Instalacja: Roblox Player', option: 'app-roblox'}
+  - !powerShell:
+      command: '.\install-roblox.ps1'
+      exeDir: true
+      runas: currentUser
+      wait: true
+      timeout: 360000
+      option: 'app-roblox'
+      errorAction: Log
+
+  # 6. TikStream (+ VC++ x64 i .NET 10 Desktop Runtime) - per-machine -> currentUserElevated
+  - !status: {status: 'Instalacja: TikStream oraz wymaganych runtime (.NET 10, VC++)', option: 'app-tikstream'}
+  - !powerShell:
+      command: '.\install-tikstream.ps1'
+      exeDir: true
+      runas: currentUserElevated
+      wait: true
+      timeout: 900000
+      option: 'app-tikstream'
+      errorAction: Log

@@ -1,0 +1,50 @@
+---
+title: Remove Microsoft Edge Browser (Keep WebView2 Runtime)
+description: Odinstalowuje wylacznie przegladarke Microsoft Edge i blokuje jej ponowna instalacje, zachowujac w pelni nienaruszony Microsoft Edge WebView2 Runtime.
+privilege: TrustedInstaller
+actions:
+  # Zamkniecie procesow przegladarki Edge (NIE zabijamy msedgewebview2)
+  - !taskKill: {name: 'msedge', errorAction: Ignore}
+  - !taskKill: {name: 'MicrosoftEdge', errorAction: Ignore}
+  - !taskKill: {name: 'MicrosoftEdgeCP', errorAction: Ignore}
+  - !taskKill: {name: 'identity_helper', errorAction: Ignore}
+
+  # Odinstalowanie przegladarki Edge przez jej oficjalny setup.exe z zachowaniem WebView2
+  - !powerShell:
+      command: '.\remove-edge-browser.ps1'
+      exeDir: true
+      runas: trustedInstaller
+      wait: true
+      timeout: 300000
+      errorAction: Log
+
+  # Usuniecie ewentualnego pakietu AppX przegladarki Edge Stable oraz deprovisioning
+  - !appx: {name: 'Microsoft.MicrosoftEdge.Stable*', operation: remove, type: family, errorAction: Ignore}
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.MicrosoftEdge.Stable_8wekyb3d8bbwe', operation: add}
+  - !registryKey: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Appx\AppxAllUserStore\Deprovisioned\Microsoft.MicrosoftEdge_8wekyb3d8bbwe', operation: add}
+
+  # Blokada automatycznej reinstalacji przegladarki Edge Chromium (bez blokowania WebView2)
+  - !registryValue:
+      path: 'HKLM\SOFTWARE\Microsoft\EdgeUpdate'
+      value: 'DoNotUpdateToEdgeWithChromium'
+      type: REG_DWORD
+      data: 1
+  - !registryValue:
+      path: 'HKLM\SOFTWARE\Policies\Microsoft\EdgeUpdate'
+      value: 'Install{56EB18F8-B008-4CBD-B6D2-8C97FE7E9062}'
+      type: REG_DWORD
+      data: 0
+  - !registryValue:
+      path: 'HKLM\SOFTWARE\Policies\Microsoft\EdgeUpdate'
+      value: 'Update{56EB18F8-B008-4CBD-B6D2-8C97FE7E9062}'
+      type: REG_DWORD
+      data: 0
+  - !registryValue:
+      path: 'HKLM\SOFTWARE\Policies\Microsoft\EdgeUpdate'
+      value: 'CreateDesktopShortcutDefault'
+      type: REG_DWORD
+      data: 0
+
+  # Uslugi edgeupdate / edgeupdatem pozostawione w trybie Manual (3) dla ewentualnej obslugi WebView2 Runtime
+  - !service: {name: 'edgeupdate', operation: change, startup: 3, errorAction: Ignore}
+  - !service: {name: 'edgeupdatem', operation: change, startup: 3, errorAction: Ignore}

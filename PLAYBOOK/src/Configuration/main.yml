@@ -1,0 +1,50 @@
+---
+title: Custom Playbook - Main Orchestrator
+description: Glowny punkt wejscia playbooka AME Wizard. Kolejnosc krytyczna - lokalizacja pl-PL NAJPIERW, blokada Windows Update NA SAMYM KONCU.
+privilege: TrustedInstaller
+actions:
+  # KROK 1 (MUSI BYC PIERWSZY - gdy Windows Update jeszcze dziala pod ewentualny pakiet pl-PL na EN ISO)
+  - !status: {status: 'Konfiguracja jezyka, klawiatury PL, regionu i strefy czasowej'}
+  - !task: {path: 'Tasks/01-locale-pl.yml'}
+
+  # KROK 2 - Totalny debloat AppX, Store, Xbox, Game Bar, Copilot, Recall, OneDrive, Widgets, Teams, Cortana
+  - !status: {status: 'Usuwanie bloatware, Microsoft Store, Xbox, Copilot, Recall i OneDrive'}
+  - !task: {path: 'Tasks/02-debloat-appx.yml'}
+
+  # KROK 3 - Usuniecie przegladarki Microsoft Edge (z zachowaniem WebView2 Runtime)
+  - !status: {status: 'Usuwanie przegladarki Microsoft Edge (z zachowaniem WebView2 Runtime)'}
+  - !task: {path: 'Tasks/03-debloat-edge.yml'}
+
+  # KROK 4 - Windows Defender, Security Center, SmartScreen, Smart App Control, telemetria, WER, IFEO
+  - !status: {status: 'Wylaczanie Windows Defender, SmartScreen i telemetrii'}
+  - !task: {path: 'Tasks/04-security-telemetry.yml'}
+
+  # KROK 5 - Prywatnosc (wszystko OFF z wyjatkiem Camera & Microphone ON)
+  - !status: {status: 'Konfiguracja prywatnosci (wszystko OFF, kamera i mikrofon ON)'}
+  - !task: {path: 'Tasks/05-privacy.yml'}
+
+  # KROK 6 - Personalizacja (Dark Mode, tapeta, Lock Screen, Start, Pasek zadan)
+  - !status: {status: 'Konfiguracja personalizacji, Dark Mode, Menu Start i paska zadan'}
+  - !task: {path: 'Tasks/06-personalization.yml'}
+
+  # KROK 7 - Wylaczenie Windows Search, indeksowania dyskow i Bing Search
+  - !status: {status: 'Wylaczanie indeksowania Windows Search oraz wyszukiwania Bing'}
+  - !task: {path: 'Tasks/07-search-indexing.yml'}
+
+  # KROK 8 - Siec i DNS Cloudflare IPv4/IPv6 + DoH na Win 11
+  - !status: {status: 'Konfiguracja DNS Cloudflare (IPv4/IPv6 oraz DoH na Windows 11)'}
+  - !task: {path: 'Tasks/08-network-dns.yml'}
+
+  # KROK 9 - Realne tweaki wydajnosciowe (FPS, frametime, input lag) i QoL
+  - !status: {status: 'Stosowanie optymalizacji wydajnosciowych i zmian QoL'}
+  - !task: {path: 'Tasks/09-performance-qol.yml'}
+
+  # KROK 10 - Opcjonalna instalacja wybranych aplikacji (bez Microsoft Store i bez winget)
+  - !status: {status: 'Instalowanie wybranych aplikacji uzytkownika'}
+  - !task: {path: 'Tasks/10-apps-install.yml'}
+
+  # KROK 11 (ZAWSZE JAKO OSTATNI KROK!) - Twarda i trwala blokada Windows Update
+  - !status: {status: 'Trwale wylaczanie Windows Update i zadan naprawczych'}
+  - !task: {path: 'Tasks/11-windows-update-lock.yml'}
+
+  - !status: {status: 'Zakonczono konfiguracje playbooka'}

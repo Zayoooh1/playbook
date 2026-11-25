@@ -1,0 +1,12 @@
+---
+title: Network and Cloudflare DNS (+ Safe DoH on Windows 11)
+description: Konfiguruje serwery DNS Cloudflare (IPv4 i IPv6) na aktywnych fizycznych kartach sieciowych oraz natywny DoH z fallbackiem do UDP na Windows 11.
+privilege: TrustedInstaller
+actions:
+  - !powerShell:
+      command: '.\set-cloudflare-dns.ps1'
+      exeDir: true
+      runas: currentUserElevated
+      wait: true
+      timeout: 120000
+      errorAction: Log

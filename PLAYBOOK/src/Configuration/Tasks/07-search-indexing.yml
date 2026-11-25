@@ -1,0 +1,90 @@
+---
+title: Disable Windows Search Indexing and Bing Web Search
+description: Wylacza usluge WSearch, atrybut indeksowania na wszystkich lokalnych dyskach NTFS oraz wyszukiwanie w internecie (Bing) w Menu Start.
+privilege: TrustedInstaller
+actions:
+  # Zatrzymanie i trwale wylaczenie uslugi Windows Search (WSearch)
+  - !service: {name: 'WSearch', operation: stop, errorAction: Ignore}
+  - !service: {name: 'WSearch', operation: change, startup: 4, errorAction: Ignore}
+  - !registryValue:
+      path: 'HKLM\SYSTEM\CurrentControlSet\Services\WSearch'
+      value: 'Start'
+      type: REG_DWORD
+      data: 4
+      errorAction: Ignore
+
+  # Wylaczenie indeksowania (IndexingEnabled = $false) na wszystkich lokalnych woluminach NTFS
+  - !powerShell:
+      command: '.\disable-drive-indexing.ps1'
+      exeDir: true
+      runas: trustedInstaller
+      wait: true
+      timeout: 300000
+      errorAction: Log
+
+  # Wylaczenie wyszukiwania Bing / chmurowego / sugestii w Menu Start (Win 10 i Win 11)
+  - !registryValue:
+      path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\Explorer'
+      value: 'DisableSearchBoxSuggestions'
+      type: REG_DWORD
+      data: 1
+  - !registryValue:
+      path: 'HKCU\SOFTWARE\Policies\Microsoft\Windows\Explorer'
+      value: 'DisableSearchBoxSuggestions'
+      type: REG_DWORD
+      data: 1
+  - !registryValue:
+      path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search'
+      value: 'AllowCloudSearch'
+      type: REG_DWORD
+      data: 0
+  - !registryValue:
+      path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search'
+      value: 'ConnectedSearchUseWeb'
+      type: REG_DWORD
+      data: 0
+  - !registryValue:
+      path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search'
+      value: 'AllowSearchToUseLocation'
+      type: REG_DWORD
+      data: 0
+  - !registryValue:
+      path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search'
+      value: 'EnableDynamicContentInWSB'
+      type: REG_DWORD
+      data: 0
+  - !registryValue:
+      path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\Windows Search'
+      value: 'AllowCortana'
+      type: REG_DWORD
+      data: 0
+  - !registryValue:
+      path: 'HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\SearchSettings'
+      value: 'IsAADCloudSearchEnabled'
+      type: REG_DWORD
+      data: 0
+  - !registryValue:
+      path: 'HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\SearchSettings'
+      value: 'IsMSACloudSearchEnabled'
+      type: REG_DWORD
+      data: 0
+  - !registryValue:
+      path: 'HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\SearchSettings'
+      value: 'IsDeviceSearchHistoryEnabled'
+      type: REG_DWORD
+      data: 0
+  - !registryValue:
+      path: 'HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\SearchSettings'
+      value: 'IsDynamicSearchBoxEnabled'
+      type: REG_DWORD
+      data: 0
+  - !registryValue:
+      path: 'HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Search'
+      value: 'BingSearchEnabled'
+      type: REG_DWORD
+      data: 0
+  - !registryValue:
+      path: 'HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Search'
+      value: 'CortanaConsent'
+      type: REG_DWORD
+      data: 0

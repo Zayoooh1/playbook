@@ -1,0 +1,299 @@
+---
+title: Privacy Settings (All OFF Except Camera and Microphone ON)
+description: Wylacza wszystkie uprawnienia prywatnosci Windows i aplikacji z jedynym jawnym wyjatkiem - Camera i Microphone pozostaja wlaczone (Allow). Nie blokuje WGC capture dla TikStream.
+privilege: TrustedInstaller
+actions:
+  # ============================================================================
+  # 1. WINDOWS PERMISSIONS - WSZYSTKO OFF
+  # ============================================================================
+  # General
+  - !registryValue:
+      path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\AdvertisingInfo'
+      value: 'Enabled'
+      type: REG_DWORD
+      data: 0
+  - !registryValue:
+      path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\AdvertisingInfo'
+      value: 'DisabledByGroupPolicy'
+      type: REG_DWORD
+      data: 1
+  - !registryValue:
+      path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\AppHost'
+      value: 'EnableWebContentEvaluation'
+      type: REG_DWORD
+      data: 0
+  - !registryValue:
+      path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+      value: 'Start_TrackProgs'
+      type: REG_DWORD
+      data: 0
+  - !registryValue:
+      path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager'
+      value: 'SubscribedContent-338393Enabled'
+      type: REG_DWORD
+      data: 0
+  - !registryValue:
+      path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager'
+      value: 'SubscribedContent-353694Enabled'
+      type: REG_DWORD
+      data: 0
+  - !registryValue:
+      path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager'
+      value: 'SubscribedContent-353696Enabled'
+      type: REG_DWORD
+      data: 0
+  - !registryValue:
+      path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\Privacy'
+      value: 'TailoredExperiencesWithDiagnosticDataEnabled'
+      type: REG_DWORD
+      data: 0
+
+  # Speech
+  - !registryValue:
+      path: 'HKCU\Software\Microsoft\Speech_OneCore\Settings\OnlineSpeechPrivacy'
+      value: 'HasAccepted'
+      type: REG_DWORD
+      data: 0
+
+  # Inking & Typing Personalization
+  - !registryValue:
+      path: 'HKCU\Software\Microsoft\InputPersonalization'
+      value: 'RestrictImplicitInkCollection'
+      type: REG_DWORD
+      data: 1
+  - !registryValue:
+      path: 'HKCU\Software\Microsoft\InputPersonalization'
+      value: 'RestrictImplicitTextCollection'
+      type: REG_DWORD
+      data: 1
+  - !registryValue:
+      path: 'HKCU\Software\Microsoft\InputPersonalization\TrainedDataStore'
+      value: 'HarvestContacts'
+      type: REG_DWORD
+      data: 0
+  - !registryValue:
+      path: 'HKCU\Software\Microsoft\Personalization\Settings'
+      value: 'AcceptedPrivacyPolicy'
+      type: REG_DWORD
+      data: 0
+
+  # Diagnostics & Feedback
+  - !registryValue:
+      path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection'
+      value: 'AllowTelemetry'
+      type: REG_DWORD
+      data: 0
+  - !registryValue:
+      path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\DataCollection'
+      value: 'DoNotShowFeedbackNotifications'
+      type: REG_DWORD
+      data: 1
+  - !registryValue:
+      path: 'HKCU\Software\Microsoft\Siuf\Rules'
+      value: 'NumberOfSIUFInPeriod'
+      type: REG_DWORD
+      data: 0
+
+  # Activity History
+  - !registryValue:
+      path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\System'
+      value: 'EnableActivityFeed'
+      type: REG_DWORD
+      data: 0
+  - !registryValue:
+      path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\System'
+      value: 'PublishUserActivities'
+      type: REG_DWORD
+      data: 0
+  - !registryValue:
+      path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\System'
+      value: 'UploadUserActivities'
+      type: REG_DWORD
+      data: 0
+
+  # ============================================================================
+  # 2. APP PERMISSIONS - WSZYSTKO DENY (POZA CAMERA, MICROPHONE ORAZ WGC CAPTURE)
+  # ============================================================================
+  # Location
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\location', value: 'Value', type: REG_SZ, data: 'Deny'}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\location', value: 'Value', type: REG_SZ, data: 'Deny'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors', value: 'DisableLocation', type: REG_DWORD, data: 1}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy', value: 'LetAppsAccessLocation', type: REG_DWORD, data: 2}
+
+  # Voice Activation
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\voiceActivation', value: 'Value', type: REG_SZ, data: 'Deny'}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\voiceActivation', value: 'Value', type: REG_SZ, data: 'Deny'}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Speech_OneCore\Settings\VoiceActivation\UserPreferenceForAllApps', value: 'AgentActivationEnabled', type: REG_DWORD, data: 0}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Speech_OneCore\Settings\VoiceActivation\UserPreferenceForAllApps', value: 'AgentActivationOnLockScreenEnabled', type: REG_DWORD, data: 0}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy', value: 'LetAppsActivateWithVoice', type: REG_DWORD, data: 2}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy', value: 'LetAppsActivateWithVoiceAboveLock', type: REG_DWORD, data: 2}
+
+  # Notifications
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\userNotificationListener', value: 'Value', type: REG_SZ, data: 'Deny'}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\userNotificationListener', value: 'Value', type: REG_SZ, data: 'Deny'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy', value: 'LetAppsAccessNotifications', type: REG_DWORD, data: 2}
+
+  # Account Info
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\userAccountInformation', value: 'Value', type: REG_SZ, data: 'Deny'}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\userAccountInformation', value: 'Value', type: REG_SZ, data: 'Deny'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy', value: 'LetAppsAccessAccountInfo', type: REG_DWORD, data: 2}
+
+  # Contacts
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\contacts', value: 'Value', type: REG_SZ, data: 'Deny'}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\contacts', value: 'Value', type: REG_SZ, data: 'Deny'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy', value: 'LetAppsAccessContacts', type: REG_DWORD, data: 2}
+
+  # Calendar (appointments)
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\appointments', value: 'Value', type: REG_SZ, data: 'Deny'}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\appointments', value: 'Value', type: REG_SZ, data: 'Deny'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy', value: 'LetAppsAccessCalendar', type: REG_DWORD, data: 2}
+
+  # Phone Calls & Call History
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\phoneCall', value: 'Value', type: REG_SZ, data: 'Deny'}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\phoneCall', value: 'Value', type: REG_SZ, data: 'Deny'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy', value: 'LetAppsAccessPhone', type: REG_DWORD, data: 2}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\phoneCallHistory', value: 'Value', type: REG_SZ, data: 'Deny'}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\phoneCallHistory', value: 'Value', type: REG_SZ, data: 'Deny'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy', value: 'LetAppsAccessCallHistory', type: REG_DWORD, data: 2}
+
+  # Email
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\email', value: 'Value', type: REG_SZ, data: 'Deny'}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\email', value: 'Value', type: REG_SZ, data: 'Deny'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy', value: 'LetAppsAccessEmail', type: REG_DWORD, data: 2}
+
+  # Tasks
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\userDataTasks', value: 'Value', type: REG_SZ, data: 'Deny'}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\userDataTasks', value: 'Value', type: REG_SZ, data: 'Deny'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy', value: 'LetAppsAccessTasks', type: REG_DWORD, data: 2}
+
+  # Messaging (chat)
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\chat', value: 'Value', type: REG_SZ, data: 'Deny'}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\chat', value: 'Value', type: REG_SZ, data: 'Deny'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy', value: 'LetAppsAccessMessaging', type: REG_DWORD, data: 2}
+
+  # Radios
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\radios', value: 'Value', type: REG_SZ, data: 'Deny'}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\radios', value: 'Value', type: REG_SZ, data: 'Deny'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy', value: 'LetAppsAccessRadios', type: REG_DWORD, data: 2}
+
+  # Other devices (bluetoothSync)
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\bluetoothSync', value: 'Value', type: REG_SZ, data: 'Deny'}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\bluetoothSync', value: 'Value', type: REG_SZ, data: 'Deny'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy', value: 'LetAppsSyncWithDevices', type: REG_DWORD, data: 2}
+
+  # App diagnostics
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\appDiagnostics', value: 'Value', type: REG_SZ, data: 'Deny'}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\appDiagnostics', value: 'Value', type: REG_SZ, data: 'Deny'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy', value: 'LetAppsGetDiagnosticInfo', type: REG_DWORD, data: 2}
+
+  # Documents, Pictures, Videos, Broad File System Access
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\documentsLibrary', value: 'Value', type: REG_SZ, data: 'Deny'}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\documentsLibrary', value: 'Value', type: REG_SZ, data: 'Deny'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\picturesLibrary', value: 'Value', type: REG_SZ, data: 'Deny'}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\picturesLibrary', value: 'Value', type: REG_SZ, data: 'Deny'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\videosLibrary', value: 'Value', type: REG_SZ, data: 'Deny'}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\videosLibrary', value: 'Value', type: REG_SZ, data: 'Deny'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\broadFileSystemAccess', value: 'Value', type: REG_SZ, data: 'Deny'}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\broadFileSystemAccess', value: 'Value', type: REG_SZ, data: 'Deny'}
+
+  # Motion / Activity & Eye Tracking (gazeInput)
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\activity', value: 'Value', type: REG_SZ, data: 'Deny'}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\activity', value: 'Value', type: REG_SZ, data: 'Deny'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\gazeInput', value: 'Value', type: REG_SZ, data: 'Deny'}
+  - !registryValue: {path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\gazeInput', value: 'Value', type: REG_SZ, data: 'Deny'}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy', value: 'LetAppsAccessMotion', type: REG_DWORD, data: 2}
+  - !registryValue: {path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy', value: 'LetAppsAccessGazeInput', type: REG_DWORD, data: 2}
+
+  # UWAGA: graphicsCaptureProgrammatic oraz graphicsCaptureWithoutBorder pozostaja NIETKNIETE (domyslne),
+  # aby nie zepsuc przechwytywania ekranu (WGC) w TikStream i aplikacjach streamingowych.
+
+  # Background Apps OFF
+  - !registryValue:
+      path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\BackgroundAccessApplications'
+      value: 'GlobalUserDisabled'
+      type: REG_DWORD
+      data: 1
+  - !registryValue:
+      path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\Search'
+      value: 'BackgroundAppGlobalToggle'
+      type: REG_DWORD
+      data: 0
+  - !registryValue:
+      path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy'
+      value: 'LetAppsRunInBackground'
+      type: REG_DWORD
+      data: 2
+
+  # Automatic file downloads & Storage Sense OFF
+  - !registryValue:
+      path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy'
+      value: '01'
+      type: REG_DWORD
+      data: 0
+  - !registryValue:
+      path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy'
+      value: '04'
+      type: REG_DWORD
+      data: 0
+  - !registryValue:
+      path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\StorageSense\Parameters\StoragePolicy'
+      value: '2048'
+      type: REG_DWORD
+      data: 0
+  - !registryValue:
+      path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\StorageSense'
+      value: 'AllowStorageSenseGlobal'
+      type: REG_DWORD
+      data: 0
+  - !registryValue:
+      path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\CloudContent'
+      value: 'DisableCloudOptimizedContent'
+      type: REG_DWORD
+      data: 1
+
+  # ============================================================================
+  # 3. JEDYNY WYJATEK - CAMERA & MICROPHONE MUSZA POZOSTAC ON (Allow)
+  # ============================================================================
+  - !registryValue:
+      path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\webcam'
+      value: 'Value'
+      type: REG_SZ
+      data: 'Allow'
+  - !registryValue:
+      path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\webcam'
+      value: 'Value'
+      type: REG_SZ
+      data: 'Allow'
+  - !registryValue:
+      path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\webcam\NonPackaged'
+      value: 'Value'
+      type: REG_SZ
+      data: 'Allow'
+
+  - !registryValue:
+      path: 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\microphone'
+      value: 'Value'
+      type: REG_SZ
+      data: 'Allow'
+  - !registryValue:
+      path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\microphone'
+      value: 'Value'
+      type: REG_SZ
+      data: 'Allow'
+  - !registryValue:
+      path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\microphone\NonPackaged'
+      value: 'Value'
+      type: REG_SZ
+      data: 'Allow'
+
+  # Usuniecie ewentualnych polityk blokujacych kamere lub mikrofon
+  - !registryValue:
+      path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy'
+      value: 'LetAppsAccessCamera'
+      operation: delete
+      errorAction: Ignore
+  - !registryValue:
+      path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\AppPrivacy'
+      value: 'LetAppsAccessMicrophone'
+      operation: delete
+      errorAction: Ignore

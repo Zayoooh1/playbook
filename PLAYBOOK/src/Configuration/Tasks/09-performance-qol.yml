@@ -1,0 +1,231 @@
+---
+title: Real Performance Tweaks (FPS, Frametime, Input Lag) and QoL
+description: Stosuje wylacznie mierzalne optymalizacje wydajnosci (zasilanie, MMCSS, brak akceleracji myszy, Game Mode, HAGS) oraz ulepszenia QoL bez wpisow placebo.
+privilege: TrustedInstaller
+actions:
+  # ============================================================================
+  # 1. PLAN ZASILANIA HIGH PERFORMANCE I BRAK OSZCZEDZANIA ENERGII USB/PCIE/DISK
+  # ============================================================================
+  - !cmd:
+      command: 'powercfg /setactive 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c'
+      wait: true
+      errorAction: Ignore
+  # USB Selective Suspend OFF (AC & DC)
+  - !cmd:
+      command: 'powercfg /setacvalueindex SCHEME_CURRENT 2a737441-1930-4402-8d77-b2bebba308a3 48e6b7a6-50f5-4782-a5d4-53bb8f07e226 0'
+      wait: true
+      errorAction: Ignore
+  - !cmd:
+      command: 'powercfg /setdcvalueindex SCHEME_CURRENT 2a737441-1930-4402-8d77-b2bebba308a3 48e6b7a6-50f5-4782-a5d4-53bb8f07e226 0'
+      wait: true
+      errorAction: Ignore
+  # PCI Express Link State Power Management OFF (AC & DC)
+  - !cmd:
+      command: 'powercfg /setacvalueindex SCHEME_CURRENT 501a4d13-42af-4429-9fd1-a8218c268e20 ee12f906-d277-404b-b6da-e5fa1a576df5 0'
+      wait: true
+      errorAction: Ignore
+  - !cmd:
+      command: 'powercfg /setdcvalueindex SCHEME_CURRENT 501a4d13-42af-4429-9fd1-a8218c268e20 ee12f906-d277-404b-b6da-e5fa1a576df5 0'
+      wait: true
+      errorAction: Ignore
+  # Usypianie dyskow OFF (AC & DC)
+  - !cmd:
+      command: 'powercfg /setacvalueindex SCHEME_CURRENT 0012ee47-9041-4b5d-9b77-535fba8b1442 6738e2c4-e8a5-4a42-b16a-e040e769756e 0'
+      wait: true
+      errorAction: Ignore
+  - !cmd:
+      command: 'powercfg /setdcvalueindex SCHEME_CURRENT 0012ee47-9041-4b5d-9b77-535fba8b1442 6738e2c4-e8a5-4a42-b16a-e040e769756e 0'
+      wait: true
+      errorAction: Ignore
+  # Zastosowanie biezacego planu zasilania oraz wylaczenie hibernacji
+  - !cmd:
+      command: 'powercfg /setactive SCHEME_CURRENT'
+      wait: true
+      errorAction: Ignore
+  - !cmd:
+      command: 'powercfg /h off'
+      wait: true
+      errorAction: Ignore
+
+  # Wylaczenie Power Throttling
+  - !registryValue:
+      path: 'HKLM\SYSTEM\CurrentControlSet\Control\Power\PowerThrottling'
+      value: 'PowerThrottlingOff'
+      type: REG_DWORD
+      data: 1
+
+  # ============================================================================
+  # 2. MMCSS / PRIORYTET GPU DLA GIER (BEZ PLACEBO TCP/BCDEDIT)
+  # ============================================================================
+  - !registryValue:
+      path: 'HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile'
+      value: 'SystemResponsiveness'
+      type: REG_DWORD
+      data: 10
+  - !registryValue:
+      path: 'HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile'
+      value: 'NetworkThrottlingIndex'
+      type: REG_DWORD
+      data: 4294967295
+  - !registryValue:
+      path: 'HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games'
+      value: 'GPU Priority'
+      type: REG_DWORD
+      data: 8
+  - !registryValue:
+      path: 'HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games'
+      value: 'Priority'
+      type: REG_DWORD
+      data: 6
+  - !registryValue:
+      path: 'HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games'
+      value: 'Scheduling Category'
+      type: REG_SZ
+      data: 'High'
+  - !registryValue:
+      path: 'HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Games'
+      value: 'SFIO Priority'
+      type: REG_SZ
+      data: 'High'
+
+  # ============================================================================
+  # 3. INPUT LAG, GAME MODE, HAGS I ZBEDNE USLUGI W TLE
+  # ============================================================================
+  # Wylaczenie akceleracji myszy (Enhance pointer precision OFF)
+  - !registryValue:
+      path: 'HKCU\Control Panel\Mouse'
+      value: 'MouseSpeed'
+      type: REG_SZ
+      data: '0'
+  - !registryValue:
+      path: 'HKCU\Control Panel\Mouse'
+      value: 'MouseThreshold1'
+      type: REG_SZ
+      data: '0'
+  - !registryValue:
+      path: 'HKCU\Control Panel\Mouse'
+      value: 'MouseThreshold2'
+      type: REG_SZ
+      data: '0'
+
+  # Game Mode ON (rekomendacja AtlasOS / ReviOS; FSO pozostaje domyslnie wlaczone)
+  - !registryValue:
+      path: 'HKCU\Software\Microsoft\GameBar'
+      value: 'AutoGameModeEnabled'
+      type: REG_DWORD
+      data: 1
+  - !registryValue:
+      path: 'HKCU\Software\Microsoft\GameBar'
+      value: 'AllowAutoGameMode'
+      type: REG_DWORD
+      data: 1
+
+  # HAGS ON (HwSchMode = 2 - wymagane m.in. pod DLSS FG; zob. README jak przelaczyc na 1)
+  - !registryValue:
+      path: 'HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers'
+      value: 'HwSchMode'
+      type: REG_DWORD
+      data: 2
+
+  # Wylaczenie zbednych uslug w tle (nieuzywanych w gamingu)
+  - !service: {name: 'SysMain', operation: stop, errorAction: Ignore}
+  - !service: {name: 'SysMain', operation: change, startup: 4, errorAction: Ignore}
+  - !service: {name: 'MapsBroker', operation: stop, errorAction: Ignore}
+  - !service: {name: 'MapsBroker', operation: change, startup: 4, errorAction: Ignore}
+  - !service: {name: 'Fax', operation: stop, errorAction: Ignore}
+  - !service: {name: 'Fax', operation: change, startup: 4, errorAction: Ignore}
+  - !service: {name: 'RemoteRegistry', operation: stop, errorAction: Ignore}
+  - !service: {name: 'RemoteRegistry', operation: change, startup: 4, errorAction: Ignore}
+  - !service: {name: 'RetailDemo', operation: stop, errorAction: Ignore}
+  - !service: {name: 'RetailDemo', operation: change, startup: 4, errorAction: Ignore}
+  - !service: {name: 'WalletService', operation: stop, errorAction: Ignore}
+  - !service: {name: 'WalletService', operation: change, startup: 4, errorAction: Ignore}
+
+  # ============================================================================
+  # 4. QUALITY OF LIFE (QoL)
+  # ============================================================================
+  # Pokazuj rozszerzenia plikow oraz otwieraj Eksplorator na "Ten komputer"
+  - !registryValue:
+      path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+      value: 'HideFileExt'
+      type: REG_DWORD
+      data: 0
+  - !registryValue:
+      path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+      value: 'LaunchTo'
+      type: REG_DWORD
+      data: 1
+
+  # Wylaczenie powiadomien o dokonczeniu konfiguracji Windows, porad i reklam
+  - !registryValue:
+      path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\UserProfileEngagement'
+      value: 'ScoobeSystemSettingEnabled'
+      type: REG_DWORD
+      data: 0
+  - !registryValue:
+      path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager'
+      value: 'SubscribedContent-310093Enabled'
+      type: REG_DWORD
+      data: 0
+  - !registryValue:
+      path: 'HKLM\SOFTWARE\Policies\Microsoft\Windows\CloudContent'
+      value: 'DisableSoftLanding'
+      type: REG_DWORD
+      data: 1
+  - !registryValue:
+      path: 'HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced'
+      value: 'ShowSyncProviderNotifications'
+      type: REG_DWORD
+      data: 0
+
+  # Klasyczne menu kontekstowe na Windows 11 (>=22000)
+  - !registryValue:
+      path: 'HKCU\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32'
+      value: ''
+      type: REG_SZ
+      data: ''
+      builds: ['>=22000']
+
+  # Wylaczenie Sticky Keys, Filter Keys i Toggle Keys
+  - !registryValue:
+      path: 'HKCU\Control Panel\Accessibility\StickyKeys'
+      value: 'Flags'
+      type: REG_SZ
+      data: '506'
+  - !registryValue:
+      path: 'HKCU\Control Panel\Accessibility\Keyboard Response'
+      value: 'Flags'
+      type: REG_SZ
+      data: '122'
+  - !registryValue:
+      path: 'HKCU\Control Panel\Accessibility\ToggleKeys'
+      value: 'Flags'
+      type: REG_SZ
+      data: '58'
+
+  # Szybsza responsywnosc UI i zamykania aplikacji / uslug
+  - !registryValue:
+      path: 'HKCU\Control Panel\Desktop'
+      value: 'MenuShowDelay'
+      type: REG_SZ
+      data: '20'
+  - !registryValue:
+      path: 'HKCU\Control Panel\Desktop'
+      value: 'AutoEndTasks'
+      type: REG_SZ
+      data: '1'
+  - !registryValue:
+      path: 'HKCU\Control Panel\Desktop'
+      value: 'WaitToKillAppTimeout'
+      type: REG_SZ
+      data: '2000'
+  - !registryValue:
+      path: 'HKCU\Control Panel\Desktop'
+      value: 'HungAppTimeout'
+      type: REG_SZ
+      data: '1000'
+  - !registryValue:
+      path: 'HKLM\SYSTEM\CurrentControlSet\Control'
+      value: 'WaitToKillServiceTimeout'
+      type: REG_SZ
+      data: '2000'
